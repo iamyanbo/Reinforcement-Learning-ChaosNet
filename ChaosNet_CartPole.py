@@ -240,7 +240,7 @@ def test(b, q):
         score = 0
         while not done:
             action = env.action_space.sample()
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _, _ = env.step(action)
             score += reward
             next_state = np.reshape(next_state, (4, 1))
             next_state = normalize(next_state)
@@ -260,7 +260,7 @@ def test(b, q):
     num_episodes = 100
     scores = []
     for i in range(num_episodes):
-        state = env.reset()
+        state = env.reset()[0]
         done = False
         score = 0
         while not done:
@@ -268,7 +268,7 @@ def test(b, q):
             state = np.reshape(state, (4, 1))
             state = normalize(state)
             action = model.predict(state)
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _, _ = env.step(action)
             score += reward
             state = next_state
             next_state = np.reshape(next_state, (4, 1))

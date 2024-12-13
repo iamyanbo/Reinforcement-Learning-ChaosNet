@@ -226,46 +226,45 @@ def test_blackjack(b, q):
     env = gym.make('Blackjack-v1')
     # random training
     for i in range(100):
-        records = []
         state = env.reset()
         done = False
-        state = normalize(np.reshape((np.array(state)).astype(np.float64), (3, 1)))
         while not done:
             action = env.action_space.sample()
-            next_state, reward, done, _ = env.step(action)
-            records.append([action, state])
-            next_state = normalize(np.reshape((np.array(next_state)).astype(np.float64), (3, 1)))
+            next_state, reward, done, _, _ = env.step(action)
+            next_state = np.reshape(next_state, (3, 1))
+            next_state = normalize(next_state)
             if not done: # reward if we havent busted
-                model.train(state, action)
-                state = next_state 
+                model.train(next_state, action)
+            state = next_state 
         if reward > 0: 
             model.train(state, action)
         elif reward < 0: 
             label = env.action_space.n + action
             model.train(state, label) 
-
         
     avg_internal_representation = model.get_internal_representation()
     num_episodes = 10000
     scores = []
     for i in range(num_episodes):
-        state = env.reset()
-        state = normalize(np.reshape((np.array(state)).astype(np.float64), (3, 1)))
+        state = env.reset()[0]
         done = False
         score = 0
-        records = []
         while not done:
+            state = np.reshape(state, (3, 1))
+            state = normalize(state)
             action = model.predict(state)
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _, _ = env.step(action)
             score += reward
+            state = next_state
+            next_state = np.reshape(next_state, (3, 1))
+            next_state = normalize(next_state)
             if not done:
-                model.train(state, action) 
-                state = normalize(np.reshape((np.array(state)).astype(np.float64), (3, 1)))
+                model.train(next_state, action) 
         if reward < 0: 
             label = env.action_space.n + action
-            model.train(state, label) 
+            model.train(next_state, label) 
         elif reward > 0: 
-            model.train(state, action) 
+            model.train(next_state, action) 
         scores.append(reward)
         avg_score = np.mean(scores)
     return avg_score, scores, avg_internal_representation
